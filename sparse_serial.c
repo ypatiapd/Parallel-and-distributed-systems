@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     int M, N, nzv;
     int i, *I, *J ;
 
-    if ((f = fopen("com-Youtube.mtx", "r")) == NULL){
+    if ((f = fopen("belgium_osm.mtx", "r")) == NULL){
         printf("NULL pointer\n");
         perror("fopen");
 
@@ -102,34 +102,33 @@ int find_triangles(int *A, int *B,int nz,int M){
   int sum=0;
   int triangles=0;
   int same_row=0;
-  int *a,*b;
 
-  b= (int *) malloc(M * sizeof(int));
-  a= (int *) malloc(M * sizeof(int));
 
   while (z<2*nz){
-      same_row=0;
+
+
       if((A[z]==row_value)&&(z!=0)){
-          same_row=1;
+          p-=psteps;
       }
-      else p+=psteps;
       q=p;
-      if(same_row==0)psteps=0;
+      psteps=0;
       qsteps=0;
       row_value=A[z];
       col_value=B[z];
-      if(same_row!=1){
-            while(A[p]==row_value){
-                p++;
-                psteps++;
-            }
-            p-=psteps;
-            for(int i=0;i<psteps;i++){
-                a[i]=B[p];
-                p++;
-            }
-            p-=psteps;
+
+      while(A[p]==row_value){
+          p++;
+          psteps++;
       }
+      p-=psteps;
+
+      int a[psteps];
+
+      for(int i=0;i<psteps;i++){
+          a[i]=B[p];
+          p++;
+      }
+
       if(row_value<col_value){
           q=iterativeBinarySearch(A, p, 2*nz-1, col_value);
           while(A[q]==col_value){
@@ -149,6 +148,10 @@ int find_triangles(int *A, int *B,int nz,int M){
           qsteps++;
       }
       q-=qsteps;
+
+
+      int b[qsteps];
+
       for(int i=0;i<qsteps;i++){
           b[i]=B[q];
           q++;
@@ -160,9 +163,10 @@ int find_triangles(int *A, int *B,int nz,int M){
               }
           }
       }
+
       z++;
   }
-  triangles=sum/6; 
+  triangles=sum/6;
   printf("triangles=%d\n",triangles);
   printf("sum=%d\n",sum);
   return triangles;
