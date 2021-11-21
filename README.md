@@ -8,8 +8,8 @@ Run Example:
 make clean
 make all 
 
-./sparse_serial 
-./sparse_pthreads 8 
-./sparse_cilkplus 16
-./sparse_openMP 32
+./sparse_serial \n
+./sparse_pthreads 8 \n
+./sparse_cilkplus 16  \n
+./sparse_openMP 32   \n
 
