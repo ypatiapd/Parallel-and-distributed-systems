@@ -29,11 +29,11 @@ struct param{
 };
 
 int total_sum;
-int numOfWorkers=0;
-int numOfThreads=16;
+int numOfWorkers=0;//number of workers alive
+int numOfThreads=16;//number of threads defined by the user
 int can_split=0;
 int thread_id=0;
-int *array_size;
+int *array_size;  //array with the remaining size of working array of each thread
 pthread_mutex_t lock;
 
 int largest(int arr[], int n);
@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     MM_typecode matcode;
     FILE *f;
     int M, N, nzv;
-    int i, *I, *J;
+    int  *I, *J;
 
     numOfThreads = atoi(argv[1]);
 
@@ -85,6 +85,7 @@ int main(int argc, char *argv[])
     J = (int *) malloc(2*nzv * sizeof(int));
     array_size = (int *) malloc(numOfThreads * sizeof(int));
 
+    /*Store the rows at array I and columns at array J*/
     for (int i=0; i<nzv; i++)
     {
         fscanf(f, "%d %d\n", &J[i], &I[i]);
@@ -94,18 +95,19 @@ int main(int argc, char *argv[])
 
     fclose(f);
 
+    /*Convert from triagonal to symmetric quadratic*/
     for (int j=0; j<nzv; j++){
         I[nzv+j]=J[j];
         J[nzv+j]=I[j];
     }
 
+    /*Sort row values of I following CSR .J values follow the sorting of I*/
     quicksort(I,J,0,2*nzv-1);
 
-    struct param Args[numOfThreads];
+    struct param Args[numOfThreads]; //arguments of thread
 
-    printf("2xnzv=%d\n",2*nzv);
     gettimeofday (&startwtime, NULL);
-    int cut =2*nzv/numOfThreads;
+    int cut =2*nzv/numOfThreads; //size of sub array that the thread will work on
 
     for(int i=0;i<numOfThreads;i++){
         Args[i].args = (ThreadArgs*)malloc (sizeof (ThreadArgs));
@@ -148,6 +150,7 @@ int main(int argc, char *argv[])
 
 }
 
+//commands for the basic function find_triangles at the sparse_serial file
 void *find_triangles(void *arg){
 
   ThreadArgs *Arg;
@@ -165,9 +168,8 @@ void *find_triangles(void *arg){
   int psteps=0;
   int sum=0;
   int triangles=0;
-  int limit=nzv/500;
+  int limit=nzv/500;// when the length of the subarray is less than this limit no more threads are created
   int waiting=0;
-  int max=0;
 
   struct param Args1;
   struct param Args2;
@@ -179,9 +181,18 @@ void *find_triangles(void *arg){
 
   while (z<end){
 
-      array_size[id]=end-z;
+      array_size[id]=end-z;//renew the length of the remaining working interval in the global array_size array
+
+      /*when the number of workers alive are less than the demanded from the user working threads,and the remaining
+      interval of the thread that locks the mutex is higher than the limit , the sum of the splitting thread is added
+      to the total sum, two new threads are generated and the splitting thread terminates.Each thread works on the half of the
+      working interval of the splitting thread*/
+
+      /*In order to split the thread with the bigger remaining working interval, the largest() function checks in the array_size array_size
+      which thread has the bigger remaining interval*/
+
       if(numOfWorkers<numOfThreads){
-          pthread_mutex_lock (&lock);
+          pthread_mutex_lock (&lock); //lock mutex to write to global variables and synchronize the creation of new threads
           array_size[id]=end-z;
           if (((end-z)==largest(array_size,numOfThreads))&&(can_split==1)&&((end-z)>limit)&&(numOfWorkers<numOfThreads)){
 
@@ -213,7 +224,7 @@ void *find_triangles(void *arg){
 
               waiting=1;
           }
-          pthread_mutex_unlock (&lock);
+          pthread_mutex_unlock (&lock);//unlock the mutex since the variable numOfWorkers is updated after the creation of threads.
 
           if(waiting==1){
               pthread_join(Args1.thread,NULL);
@@ -281,7 +292,7 @@ void *find_triangles(void *arg){
 
   }
 
-  pthread_mutex_lock (&lock);
+  pthread_mutex_lock (&lock); //lock the mutex to write to the global variable
   total_sum+=sum;
   numOfWorkers-=1;
   printf(" workers=%d\n",numOfWorkers);
