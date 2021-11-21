@@ -16,7 +16,6 @@ typedef struct {
     int start;
     int end;
     int nzv;
-    int M;
 }ThreadArgs;
 
 struct param{
@@ -77,6 +76,7 @@ int main(int argc, char *argv[])
     I = (int *) malloc(2*nzv * sizeof(int));
     J = (int *) malloc(2*nzv * sizeof(int));
 
+    /*Store the rows at array I and columns at array J*/
     for (int i=0; i<nzv; i++)
     {
         fscanf(f, "%d %d\n", &J[i], &I[i]);
@@ -86,16 +86,17 @@ int main(int argc, char *argv[])
 
     fclose(f);
 
+    /*Convert from triagonal to symmetric quadratic*/
     for (int j=0; j<nzv; j++){
         I[nzv+j]=J[j];
         J[nzv+j]=I[j];
     }
 
+    /*Sort row values of I following CSR .J values follow the sorting of I*/
     quicksort(I,J,0,2*nzv-1);
 
-    printf("2xnzv=%d\n",2*nzv);
     gettimeofday (&startwtime, NULL);
-    int cut =2*nzv/numOfThreads;
+    int cut =2*nzv/numOfThreads; //size of sub array that the thread will work on
 
     for(int i=0;i<numOfThreads;i++){
         Args[i].args = (ThreadArgs*)malloc (sizeof (ThreadArgs));
@@ -104,7 +105,6 @@ int main(int argc, char *argv[])
         Args[i].args->start=i*cut;
         Args[i].args->end=(i+1)*cut;
         Args[i].args->nzv=nzv;
-        Args[i].args->M=M/numOfThreads;
     }
     Args[numOfThreads-1].args->end=2*nzv;
 
@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
     printf("triangles=%d\n",triangles);
 
 }
-
+//commands for the basic function find_triangles at the sparse_serial file
 void *find_triangles(void *arg){
 
   ThreadArgs *Arg;
@@ -144,7 +144,6 @@ void *find_triangles(void *arg){
   int start=Arg->start;
   int end=Arg->end;
   int nzv=Arg->nzv;
-  int M=Arg->M;
   int z=start;
   int p=z;
   int q=0;
