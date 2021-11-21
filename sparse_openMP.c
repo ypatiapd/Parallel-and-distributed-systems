@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 
     struct param Args[numOfThreads];
 
-    if ((f = fopen("com-Youtube.mtx", "r")) == NULL){
+    if ((f = fopen("belgium_osm.mtx", "r")) == NULL){
         printf("NULL pointer\n");
         perror("fopen");
 
@@ -120,14 +120,11 @@ int main(int argc, char *argv[])
               find_triangles(Args[i].args);
 
         }
-
     }
-
     for(int i=0;i<numOfThreads;i++){
 
         #pragma omp taskwait
     }
-
     gettimeofday (&endwtime, NULL);
 
     seq_time = (double)((endwtime.tv_usec - startwtime.tv_usec)/1.0e6
@@ -137,9 +134,6 @@ int main(int argc, char *argv[])
     printf("total_sum=%d\n",total_sum);
     int triangles =total_sum/6;
     printf("triangles=%d\n",triangles);
-
-    gettimeofday (&startwtime, NULL);
-
 
 }
 
@@ -154,19 +148,12 @@ void *find_triangles(void *arg){
   int z=start;
   int p=z;
   int q=0;
-  int same_row=0;
   int row_value=Arg->A[z];
   int col_value=Arg->B[z];
   int qsteps=0;
   int psteps=0;
   int sum=0;
   int triangles=0;
-  int *a,*b;
-  b= (int *) malloc(M * sizeof(int));
-  a= (int *) malloc(M * sizeof(int));
-
-  printf("start=%d\n",start);
-  printf("end=%d\n",end);
 
   while((Arg->A[p]==row_value)&&(p!=-1)){
       p--;
@@ -175,27 +162,26 @@ void *find_triangles(void *arg){
 
   while (z<end){
 
-      same_row=0;
       if((Arg->A[z]==row_value)&&(z!=start)){
-          same_row=1;
+          p-=psteps;
       }
-      else p+=psteps;
       q=p;
-      if(same_row==0)psteps=0;
+      psteps=0;
       qsteps=0;
       row_value=Arg->A[z];
       col_value=Arg->B[z];
-      if(same_row!=1){
-            while(Arg->A[p]==row_value){
-                p++;
-                psteps++;
-            }
-            p-=psteps;
-            for(int i=0;i<psteps;i++){
-                a[i]=Arg->B[p];
-                p++;
-            }
-            p-=psteps;
+
+      while(Arg->A[p]==row_value){
+          p++;
+          psteps++;
+      }
+      p-=psteps;
+
+      int a[psteps];
+
+      for(int i=0;i<psteps;i++){
+          a[i]=Arg->B[p];
+          p++;
       }
       if(row_value<col_value){
           q=iterativeBinarySearch(Arg->A, p, 2*nzv-1, col_value);
@@ -216,6 +202,9 @@ void *find_triangles(void *arg){
           qsteps++;
       }
       q-=qsteps;
+
+      int b[qsteps];
+
       for(int i=0;i<qsteps;i++){
           b[i]=Arg->B[q];
           q++;
@@ -228,14 +217,10 @@ void *find_triangles(void *arg){
           }
       }
       z++;
-
   }
 
   total_sum+=sum;
-
   printf("sum=%d\n",sum);
-  free(b);
-  free(a);
 
 }
 
