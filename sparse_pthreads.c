@@ -188,8 +188,8 @@ void *find_triangles(void *arg){
       to the total sum, two new threads are generated and the splitting thread terminates.Each thread works on the half of the
       working interval of the splitting thread*/
 
-      /*In order to split the thread with the bigger remaining working interval, the largest() function checks in the array_size array_size
-      which thread has the bigger remaining interval*/
+      /*In order to split the thread with the bigger remaining working interval, the largest() function checks in the array_size array
+      which thread has the bigger remaining interval, so that the work is shared efficiently*/
 
       if(numOfWorkers<numOfThreads){
           pthread_mutex_lock (&lock); //lock mutex to write to global variables and synchronize the creation of new threads
