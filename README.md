@@ -17,3 +17,5 @@ make all
 
 ./sparse_openMP 32   
 
+
+change name of matrix file in the c files
