@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
     int M, N, nzv;
     int  *I, *J ;
 
-    if ((f = fopen("com-Youtube.mtx", "r")) == NULL){
+    if ((f = fopen(argv[2], "r")) == NULL){
         printf("NULL pointer\n");
         perror("fopen");
 
