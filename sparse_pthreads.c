@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 
     numOfThreads = atoi(argv[1]);
 
-    if ((f = fopen("dblp-2010.mtx", "r")) == NULL){
+    if ((f = fopen(argv[2], "r")) == NULL){
         printf("NULL pointer\n");
         perror("fopen");
 
