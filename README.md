@@ -58,4 +58,4 @@ cilkplus run examples:
 ./sparse_cilkplus 4 NACA0015.mtx
 
 
-**little changes occured about the array argument for earier runing process
+**little changes occured about the array argument for easier runing process
