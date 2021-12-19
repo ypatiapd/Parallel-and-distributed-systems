@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     int M, N, nzv; //number of rows and columns in the main array , and non zero values
     int *I, *J ;
 
-    if ((f = fopen("belgium_osm.mtx", "r")) == NULL){
+    if ((f = fopen(argv[1], "r")) == NULL){
         printf("NULL pointer\n");
         perror("fopen");
 
