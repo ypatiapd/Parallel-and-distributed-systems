@@ -1,6 +1,5 @@
 # Parallel-and-distributed-systems
 
-
 Each parallel program accepts as argument the number of desired threads and the array for calculation.
 
 Run Example:
@@ -57,3 +56,6 @@ cilkplus run examples:
 ./sparse_cilkplus 4 dblp-2010.mtx
 
 ./sparse_cilkplus 4 NACA0015.mtx
+
+
+**little changes occured about the array argument for earier runing process
