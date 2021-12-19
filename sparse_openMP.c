@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 
     struct param Args[numOfThreads];
 
-    if ((f = fopen("belgium_osm.mtx", "r")) == NULL){
+    if ((f = fopen(argv[2], "r")) == NULL){
         printf("NULL pointer\n");
         perror("fopen");
 
