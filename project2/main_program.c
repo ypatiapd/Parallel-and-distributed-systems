@@ -76,12 +76,6 @@ int main(int argc, char *argv[])
 
     fclose(ptr);
 
-    /*if(SelfTID==3){
-        for (int i =0; i<block*d;i++){
-                printf("bin= %lf \n ", array[i]);
-            printf("\n");
-        }
-    }*/
     gettimeofday (&startwtime, NULL);
     distributeByMedian(n,d,all_tasks,NumTasks,depth,leader,mean_id,pivot,SelfTID,mpistat);
     gettimeofday (&endwtime, NULL);
@@ -141,7 +135,7 @@ double distributeByMedian(int n, int d,int all_tasks,int NumTasks,int depth,int 
     }
     /*end*/
 
-    /*function find_distances()*/
+    /* find_distances */
     double sumOfSquares=0;
     double a=0;
 
@@ -163,19 +157,6 @@ double distributeByMedian(int n, int d,int all_tasks,int NumTasks,int depth,int 
     }
     /*end*/
 
-    /*if(depth==2){
-        for (int i =0; i<block;i++){
-            printf("TID:%i  %f\n ", SelfTID,distances[i]);
-        }
-    }*/
-
-    /*if((SelfTID==0)&&(depth==2)){
-        for (int i =0; i<n;i++){
-            printf(" %f\n ", all_distances[i]);
-        }
-    }*/
-    //end_function
-
     /*send to leader the calculated distances*/
     if(SelfTID != leader){
         MPI_Send(distances,block,MPI_DOUBLE,leader,55,MPI_COMM_WORLD);
@@ -187,12 +168,6 @@ double distributeByMedian(int n, int d,int all_tasks,int NumTasks,int depth,int 
         }
     }
     /*end*/
-
-    /*if((SelfTID==0)&&(depth==2)){
-        for (int i =0; i<n;i++){
-            printf(" %f\n ", all_distances[i]);
-        }
-    }*/
 
     /*Announce median_distance*/
     if(SelfTID == leader){
@@ -208,7 +183,8 @@ double distributeByMedian(int n, int d,int all_tasks,int NumTasks,int depth,int 
     }
     /*end*/
 
-    /*function distribute_and_split()*/
+    /* distribute_and_split */
+
     int *array_smalls; //array with indexes of the points with distance smaller than the median
     int *array_bigs;  //array with indexes of the points with distance bigger than the median
     array_bigs = (int *) malloc(block * sizeof(int));
@@ -218,13 +194,10 @@ double distributeByMedian(int n, int d,int all_tasks,int NumTasks,int depth,int 
 
     for (int i=0;i<block;i++){
         if(distances[i]<median_distance){
-            //printf(" small distance  %f pointer %d \n ",distances[i],start+i);
             array_smalls[smalls_counter]=i*d;
             smalls_counter++;
         }
         else if(distances[i]>=median_distance){
-            //printf("tid %i big distance  %f \n ",SelfTID,distances[i]);
-            //printf(" big distance  %f pointer %d \n ",distances[i],start+i);
             array_bigs[bigs_counter]=i*d;
             bigs_counter++;
         }
@@ -237,6 +210,7 @@ double distributeByMedian(int n, int d,int all_tasks,int NumTasks,int depth,int 
     /*end*/
 
     /*sizes exchange*/
+
     int sizes[NumTasks];//array with number of small distance or big distance points in each process, depending on the id of the process
     if(SelfTID<mean_id)
         sizes[SelfTID-leader]=smalls_counter;
@@ -267,15 +241,13 @@ double distributeByMedian(int n, int d,int all_tasks,int NumTasks,int depth,int 
             }
         }
     }
-    for (int i =0; i<NumTasks;i++){
-        printf("depth= %d TID= %i sizes %d\n ", depth, SelfTID,sizes[i]);
-    }
+    
     /*end*/
 
     /*points exchange*/
     double *buffer;
     double *recv_buffer;
-    int pfs=0;  // prefix scan pointer of received points
+    int pfs=0;  // prefix sum pointer of received points
     int my_pfs=0;// the point that each process will start saving the data from the received points
     MPI_Request mpireq;
 
@@ -286,7 +258,6 @@ double distributeByMedian(int n, int d,int all_tasks,int NumTasks,int depth,int 
                 break;
             my_pfs+=(block-sizes[i])*d;
         }
-        printf("TID %i  my_pfs %d \n ",SelfTID,my_pfs);
         buffer = (double *) malloc(bigs_counter*d * sizeof(double));
         for(int i=0;i<bigs_counter*d;i+=d){ //transfer to buffer the data that will be send
             for(int j=0;j<d;j++){
@@ -306,31 +277,18 @@ double distributeByMedian(int n, int d,int all_tasks,int NumTasks,int depth,int 
             size=0;
             recv_buffer = (double *) malloc(sizes[NumTasks/2+i]*d * sizeof(double));
             MPI_Recv(recv_buffer,sizes[NumTasks/2+i]*d,MPI_DOUBLE,mean_id+i,55,MPI_COMM_WORLD,&mpistat);
-            //for (int j=0;j<10 ;j++)
-            //    printf("TID %i buff %f \n ",SelfTID,recv_buffer[j]);
             int buffer_idx=my_pfs-pfs+rest;
             pfs+=sizes[NumTasks/2+i]*d;
-            printf("TID %i first bufer_idx %d \n ",SelfTID,buffer_idx);
-            printf("TID %i pfs %d \n ",SelfTID,pfs);
-            //&&(pfs<my_pfs+bigs_pointer*d)
-            printf("TID %i pointer %d start iter %d \n ",SelfTID,pointer,i);
             if ((pfs>my_pfs)&&(rest<bigs_counter*d)&&(buffer_idx>=0)){
-                printf("TID %i pfs %d my_pfs %d \n ",SelfTID,pfs,my_pfs);
                 while((rest<bigs_counter*d)&&(buffer_idx+size<sizes[NumTasks/2+i]*d)){
                     array[pointer+size]=recv_buffer[buffer_idx+size];
                     size+=1;
                     rest+=1;
-                    //printf("TID %i bufer %f \n ",SelfTID,recv_buffer[buffer_idx+size]);
-                    //pointer-smalls_counter*d+size
-                    //printf("TID %i pointer1 %d \n ",SelfTID,pointer-smalls_counter*d+size);
-                    //printf("TID %i pointer2 %d \n ",SelfTID,bigs_counter*d);
                 }
                 pointer+=size;
-                printf("TID %i pointer %d end iter %d \n ",SelfTID,pointer,i);
             }
             free(recv_buffer);
         }
-        //free(buffer);
     }
     else{//same procedure fore the points with id>mean_id
         int size=0;
@@ -339,7 +297,6 @@ double distributeByMedian(int n, int d,int all_tasks,int NumTasks,int depth,int 
                 break;
             my_pfs+=(block-sizes[i+NumTasks/2])*d;
         }
-        printf("TID %i  my_pfs %d \n ",SelfTID,my_pfs);
         buffer = (double *) malloc(smalls_counter*d * sizeof(double));
         for(int i=0;i<smalls_counter*d;i+=d){
             for(int j=0;j<d;j++){
@@ -360,36 +317,19 @@ double distributeByMedian(int n, int d,int all_tasks,int NumTasks,int depth,int 
             size=0;
             recv_buffer = (double *) malloc(sizes[i]*d * sizeof(double));
             MPI_Recv(recv_buffer,sizes[i]*d,MPI_DOUBLE,leader+i,55,MPI_COMM_WORLD,&mpistat);
-            //for (int j=0;j<10 ;j++)
-            //    printf("TID %i buff %f \n ",SelfTID,recv_buffer[j]);
-            int buffer_idx=my_pfs-pfs+rest;//edwwwwwww gamwwwwww
+            int buffer_idx=my_pfs-pfs+rest;
             pfs+=sizes[i]*d;
-            printf("TID %i first bufer_idx %d \n ",SelfTID,buffer_idx);
-            printf("TID %i pfs %d \n ",SelfTID,pfs);
-            printf("TID %i pointer %d start iter %d \n ",SelfTID,pointer,i);
             if ((pfs>my_pfs)&&(rest<smalls_counter*d)&&(buffer_idx>=0)){
-                printf("TID %i pfs %d my_pfs %d \n ",SelfTID,pfs,my_pfs);
-                //printf("TID %i irthaaaaaa \n ",SelfTID);
                 while((rest<smalls_counter*d)&&(buffer_idx+size<sizes[i]*d)){
                     array[pointer+size]=recv_buffer[buffer_idx+size];
                     size+=1;
                     rest+=1;
-                    //printf("TID %i bufer %f \n ",SelfTID,recv_buffer[buffer_idx+size]);
-                    //pointer-smalls_counter*d+size
-                    //printf("TID %i pointer1 %d \n ",SelfTID,pointer-smalls_counter*d+size);
-                    //printf("TID %i pointer2 %d \n ",SelfTID,bigs_counter*d);
                 }
                 pointer+=size;
-                printf("TID %i pointer %d end iter %d \n ",SelfTID,pointer,i);
             }
             free(recv_buffer);
         }
-        //free(buffer);
     }
-    /*if(SelfTID==3){
-        for (int j=0;j<block*d;j++)
-            printf("buff %f \n ",array[j]);
-    }*/
 
     /*end*/
     free(array_bigs);
@@ -403,15 +343,13 @@ double distributeByMedian(int n, int d,int all_tasks,int NumTasks,int depth,int 
             a=pow(array[i+j]-pivot[j],2);
             sumOfSquares+=a;
         }
-        //if(depth==1)
-            //printf("TID %i     %lf\n ",SelfTID, sumOfSquares);
        if(SelfTID<mean_id){
             if(sumOfSquares>median_distance)
-                  printf("iter %d depth %d TID %i small distance   %f > %f  \n",i, depth,SelfTID,sumOfSquares,median_distance );
+                  printf("ERROR iter %d depth %d TID %i big distance %f should be smaller than median  %f  \n",i, depth,SelfTID,sumOfSquares,median_distance );
         }
         else{
             if(sumOfSquares<median_distance)
-                  printf("iter %d depth %d TID %i big distance %f < %f\n",i, depth ,SelfTID,sumOfSquares,median_distance);
+                  printf("ERROR iter %d depth %d TID %i small distance %f should be bigger than median  %f  \n",i, depth ,SelfTID,sumOfSquares,median_distance);
         }
     }
     /*end*/
@@ -425,9 +363,6 @@ double distributeByMedian(int n, int d,int all_tasks,int NumTasks,int depth,int 
     /*regression*/
 
     if (depth>0){
-        //printf("TID %i  bika  %d \n ",SelfTID,depth);
-        printf(" depth=%d NumTasks %d  leader1 %d leader2 %d mean1 %d mean2 %d \n ",depth,NumTasks,leader1,leader2,mean_id1,mean_id2);
-
         if(SelfTID<mean_id){
             distributeByMedian(n/2,d,all_tasks,NumTasks/2,depth,leader1,mean_id1,pivot,SelfTID,mpistat);
         }
@@ -437,7 +372,6 @@ double distributeByMedian(int n, int d,int all_tasks,int NumTasks,int depth,int 
     }
     /*end*/
 
-    //printf("TID %i  vgika %d \n ",SelfTID,depth);
     return 0;
 }
 double quickselect(double nums[], int left, int right, int k)
