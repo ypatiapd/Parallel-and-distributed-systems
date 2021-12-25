@@ -8,3 +8,6 @@ After run:
 make clean
 make all
 mpirun -np numTasks main_program file_name.bin
+
+The program reads first the number of attributes d, after the number of points n 
+and then the points in row major order (point after point)
