@@ -1,0 +1,14 @@
+For running the serial file :
+make clean
+make all
+./ising_serial
+
+For the cuda files, i run them at google colab with adding %%cu at the top of the file 
+and after running the following two commands: 
+
+!pip install git+git://github.com/andreinechaev/nvcc4jupyter.git
+
+%load_ext nvcc_plugin
+
+Change L ,k and b manualy in each file. 
+In v3 , make sure L is multiple of b.
