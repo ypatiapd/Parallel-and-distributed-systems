@@ -12,24 +12,24 @@ __global__ void moment( int *array1,int *array2,int N,int L)
   int sum=0;
   int row = idx /L;
   int me = array1[idx];
-  int n = array1[(row)?(idx-L):(idx+L*(L-1))];
-  int s = array1[(idx+L)%N];
-  int e = array1[(idx + 1)%L + row * L] ;
-  int w = array1[idx?((idx - 1)%L + row * L):(L-1)] ;
+  int n = array1[(row)?(idx-L):(idx+L*(L-1))];  //north neighbour 
+  int s = array1[(idx+L)%N];                    //south neighbour
+  int e = array1[(idx + 1)%L + row * L] ;       //east neighbour
+  int w = array1[idx?((idx - 1)%L + row * L):(L-1)] ;   //west neighbour
 
   sum = sum + me +n + w + s + e ;
 
-  array2[idx]= (sum > 0) - (sum < 0);
+  array2[idx]= (sum > 0) - (sum < 0);      // -1 if sum of 5 values <0 or 1 if sum>0
 
 }
 
 int main()
 {
   int *array_host, *array1_device, *array2_device ;
-  int L=1000;
-  int N=L*L;
-  int k=40;
-  int r=0;
+  int L=1000;   //length of array row
+  int N=L*L;    //number of points
+  int k=40;     //number of iterations
+  int r=0;  
 
   float ms;
 
@@ -61,6 +61,7 @@ int main()
   cudaEventRecord(start, 0);
 
   gettimeofday (&startwtime, NULL);
+  // for k times run the kernel, each time switch the pointers of the arrays
   for (int i=0;i<k;i++){
       //printf("z=%d\n",z);
       if(i%2==0){
