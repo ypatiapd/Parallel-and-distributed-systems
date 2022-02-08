@@ -10,22 +10,24 @@ __global__ void moment( int *array1,int *array2,int N,int L,int b,int nBlocks,in
 {
     int idx= blockIdx.x*blockDim.x*b + threadIdx.x*b;
     __shared__ int array_block[1500];
-    int row = idx /L;
-    int shared_idx=threadIdx.x*b;
-    int left,right;
-    int shared_L=blockSize*b;
+    int row = idx /L;   //row of the array in global memory
+    int shared_idx=threadIdx.x*b;   //index of point in shared memory
+    int left,right;                 // left and right neighbours of the edge points  in shared memory (we need only two variables because we pass a Line of the main array or less)
+    int shared_L=blockSize*b;       // line length of the shared memory array
 
     for (int i=0;i<b;i++){
         row = (idx+i) /L;
-        array_block[shared_idx+i]=array1[idx+i];//kathe thread to diko tou part antigrafei
-        array_block[shared_idx+i+ shared_L]=array1[(idx+i+L)%N];
-        array_block[shared_idx+i+ 2*shared_L]=array1[(row)?(idx-L+i):(idx+L*(L-1)+i)];
+        array_block[shared_idx+i]=array1[idx+i];//every thread copies to shared memory its points from global (from 1 to b)
+        array_block[shared_idx+i+ shared_L]=array1[(idx+i+L)%N]; //for these points, each thread copies the south neighbours to the second line of the shared memory array
+        array_block[shared_idx+i+ 2*shared_L]=array1[(row)?(idx-L+i):(idx+L*(L-1)+i)];  // also for these points, each thread copies the north neighbours to the third line of the shared memory array
     }
-
+    
+    //if the point is at the left edge of the points vector then copy to left variable the left neighbour
     if(shared_idx==0){
         left=array1[(idx)?((idx - 1)%L + row * L):(L-1)] ;
     }
-
+    
+    //if the point is at the right edge of the points vector then copy to right variable the right neighbour
     if(shared_idx+b==shared_L){
         row = (idx+b-1) /L;
         right=array1[(idx+b)%L + row * L] ;
