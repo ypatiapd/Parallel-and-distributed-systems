@@ -1,1 +1,29 @@
-ssss
+Compile files:
+
+make clean
+make all
+
+Run serial_tree:
+./serial_tree p d 
+
+Run openmp_tree:
+./openmp_tree p d threadNo
+
+Run knn:
+./knn p d threadNo
+
+Compile and Run cuda_tree:
+!nvcc -O3 -o cuda_tree cuda_tree.cu -Xcompiler -fopenmp -g
+!./cuda_tree p d threadNo
+
+Arguments:
+p: power of 2. n= 2^p , where n the number of points
+d: point dimension 
+threadNo: Number of threads for openMP 
+
+Example :
+./openmp_tree 16 4 4 
+
+n=2^16
+d=4
+threadNo=4
