@@ -12,7 +12,7 @@ Run openmp_tree:
 Run knn:
 ./knn p d threadNo
 
-Compile and Run cuda_tree:
+Compile and Run cuda_tree (google colab):
 !nvcc -O3 -o cuda_tree cuda_tree.cu -Xcompiler -fopenmp -g
 !./cuda_tree p d threadNo
 
