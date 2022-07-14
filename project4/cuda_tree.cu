@@ -28,16 +28,16 @@ __global__ void dist( float *array,float *distances,int n,int d)
     float b=0;
     float sum=0;
     //printf("t idx= %d \n",threadIdx.x);
+    
+    //kathe simeio upologizetai apo ena thread tis GPU
     if(idx<n){
         for(int j=0;j<d;j++){
             b=array[idx*d+j]-array[(n-1)*d+j];
             a=b*b;
             sum+=a;
         }
-        distances[idx]=sum;
-        //printf("idx= %d  dist= %f \n",idx,distances[idx]);
-    }
-    //printf("idx= %d threadid =%d \n",idx,threadIdx.x);
+        distances[idx]=sum;   
+    } 
 }
 int main(int argc, char *argv[]){
 
