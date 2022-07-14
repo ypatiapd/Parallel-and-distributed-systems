@@ -104,7 +104,9 @@ struct T *vpTree ( double *X, int *idx,int n ,int d,int start,int threadNo,int l
         tree->inner=NULL;
         tree->outer=NULL;
     }
-    if(n>=limit){
+    if(n>=limit){   // parallel code
+        
+        /*parallel calculation of distances for loop */
         #pragma omp parallel
         {
             int q;
@@ -186,6 +188,8 @@ struct T *vpTree ( double *X, int *idx,int n ,int d,int start,int threadNo,int l
         free(qs_distances);
         free(x_out);
         free(idx);
+        
+        /*parallel regression calls . One thread executes the function for the inner points and one for the outer*/
         #pragma omp parallel
         {
             #pragma omp single
@@ -200,7 +204,7 @@ struct T *vpTree ( double *X, int *idx,int n ,int d,int start,int threadNo,int l
             #pragma omp barrier
         }
     }
-    if((n<limit)&&(n>1)){
+    if((n<limit)&&(n>1)){  //serial code
         double sum=0;
         double a=0;
 
