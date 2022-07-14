@@ -27,3 +27,5 @@ Example :
 n=2^16
 d=4
 threadNo=4
+
+**Comments for the main function of vpTree() function at serial_tree.c file 
