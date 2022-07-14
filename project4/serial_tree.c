@@ -34,8 +34,8 @@ int main(int argc, char *argv[]){
     //int n=1048576;
     //int n=2097152;
     int p=atoi(argv[1]);
-    int n= pow(2,p);
-    int d = atoi(argv[2]);
+    int n= pow(2,p); // number of points in powers of 2
+    int d = atoi(argv[2]); //point dimensions
     printf("n=%d  d=%d \n",n,d);
 
     struct timeval startwtime, endwtime;
@@ -46,8 +46,8 @@ int main(int argc, char *argv[]){
     int iters=1;
 
     for(int z=0;z<iters;z++){
-        double * X;
-        int *idx;
+        double * X; //points array
+        int *idx;   //point indexes array
         srand(time(NULL));
 
         X=(double*)malloc(d*n*sizeof(double*));
@@ -58,20 +58,11 @@ int main(int argc, char *argv[]){
                 X[i*d+j] =drand(0,1000);
             }
         }
-        /*for (int i=0;i<n;i++) {
-            for (int j=0;j<d;j++) {
-                printf("%f ",  X[i*d+j]);
-            }
-            printf(" \n");
-        }*/
 
         for( int i=0;i<n;i++){
             idx[i]=i;
         }
 
-        /*for (int i=0;i<n;i++) {
-            printf("%d \n",  idx[i]);
-        }*/
         gettimeofday (&startwtime, NULL);
 
 
@@ -79,15 +70,8 @@ int main(int argc, char *argv[]){
 
         gettimeofday (&endwtime, NULL);
 
-        /*for (int i=0;i<n;i++) {
-            for (int j=0;j<d;j++) {
-                printf("%f ",  X[i*d+j]);
-            }
-            printf(" \n");
-        }*/
-
         seq_time = (endwtime.tv_sec -startwtime.tv_sec)*1000000L  +endwtime.tv_usec - startwtime.tv_usec ;
-        printf("time=%f\n",seq_time);
+        printf("Elapsed time=%f\n",seq_time);
         if(z>0)
             sum+=seq_time;
   }
@@ -107,11 +91,11 @@ struct T *vpTree ( double *X, int *idx,int n ,int d,int start){
     int *outer_idxs;
     int *inner_idxs;
     distances=(double*)malloc((n)*sizeof(double*));
-    qs_distances=(double*)malloc((n)*sizeof(double*));
-    x_out=(double*)malloc(d*(int)(n/2)*sizeof(double*));
-    outer_idxs=(int*)malloc((int)(n/2)*sizeof(int*));
-    inner_idxs=(int*)malloc((int)(n/2)*sizeof(int*));
-    tree->vp=(double*)malloc((d)*sizeof(double*));
+    qs_distances=(double*)malloc((n)*sizeof(double*));//idios me distances. i quick select anakatanemei ton pinaka giati gia oikonomia den dimiourgei antigrafo
+    x_out=(double*)malloc(d*(int)(n/2)*sizeof(double*));// buffer gia ta simeia me megaliteri apostash apo th median
+    outer_idxs=(int*)malloc((int)(n/2)*sizeof(int*)); //deiktes simeiwn mikroteris apostasis
+    inner_idxs=(int*)malloc((int)(n/2)*sizeof(int*));// deiktes simeiwn megaliteris apostasis
+    tree->vp=(double*)malloc((d)*sizeof(double*));  //vantage point
 
     if(n==1){
         tree->md=0;
@@ -126,6 +110,7 @@ struct T *vpTree ( double *X, int *idx,int n ,int d,int start){
         double sum=0;
         double a=0;
 
+        /*distances calculation*/
         for (int i=0;i<n;i++){
             sum=0;
             for(int j=0;j<d;j++){
@@ -133,8 +118,10 @@ struct T *vpTree ( double *X, int *idx,int n ,int d,int start){
                 sum+=a;
             }
             distances[i]=sum;
-            qs_distances[i]=sum;
+            qs_distances[i]=sum;// apothikevoume 2 fores giati i sinartisi quickselect xalaei ton pinaka
         }
+
+
         median_distance= quickselect(qs_distances, 0, n-1, n/2);//i quick select anakatanemei ton pinaka giati dia oikonomia den dimiourgei antigrafo
         tree->md=median_distance;
         for(int i=0;i<d;i++){
@@ -143,15 +130,17 @@ struct T *vpTree ( double *X, int *idx,int n ,int d,int start){
         tree->idx=idx[n-1]; //vazoume to deikti tou VP ston arxiko pinaka
         int index=0;
 
+        /*save points with bigger distance in x_out buffer*/
         for (int i=0;i<n;i++){ // apothikevoume ola ta megalitera se pinaka, etsi antigrafoume mono ta eswterika ta kanoume shift ston arxiko
             if(distances[i]>=median_distance){
-                outer_idxs[index]= idx[i];
+                outer_idxs[index]= idx[i];// save outer points indexes
                 for(int j=0;j<d;j++)
                     x_out[index*d+j]=X[(start+i)*d+j];
                 index++;
             }
         }
 
+        /* shift points with smaller distance to the left of array X */
         index=0; // gia na valoume to vandage stin prwti kai na kseroume pou einai gia validation
         for (int i=0;i<n-1;i++){  //kanoume shift ta mikrotera pros ta aristera
             if(distances[i]<median_distance){
@@ -162,10 +151,11 @@ struct T *vpTree ( double *X, int *idx,int n ,int d,int start){
             }
         }
         for(int j=0;j<d;j++)
-            X[(start+n/2-1)*d+j]=X[(start+n-1)*d+j]; //vazoume to vandage sto telos tou aristerou pinaka
+            X[(start+n/2-1)*d+j]=X[(start+n-1)*d+j]; //put VP at the end of the array X
 
         inner_idxs[index]=idx[n-1];
 
+        /*transfer the outer points from x_out buffer to the right side of the array X*/
         for (int i=0;i<n/2;i++){ //kai prosthetoume apo ti mesi mexri to telos tou original pinaka  ta megalitera
             for(int j=0;j<d;j++)
                 X[(start+n/2+i)*d+j]=x_out[i*d+j];
