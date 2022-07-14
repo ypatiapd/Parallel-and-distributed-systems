@@ -74,7 +74,7 @@ int main(int argc, char *argv[]){
     int power=atoi(argv[4]);
     gettimeofday (&startwtime, NULL);
 
-    for(int z=0;z<power;z++){
+    for(int z=0;z<power;z++){ // ypologismos  2^0 ews 2^8 knn 
         int k=pow(2,z);
         printf("k=%d\n",k);
         for(int i=0;i<n;i++){
@@ -97,19 +97,28 @@ int main(int argc, char *argv[]){
 
 struct T *knn_search(struct T *t, double *point,int d, int k,int level){
     struct T *kn = malloc(sizeof(struct T));
+    
+    // an to level isoutai me k tote eimaste sto dentro pou ta filla tou einai oi knn pou zitame kai to epistrefoume
     if (level==k){
         kn=t;
         return kn;
     }
-    level= level/2;
+    
+    //se kathe anadromiki klisi to level upodiplasiazetai. 
+    //( epilegoume euthaireta na ksekinisoume me level=n opote oso proxwrame stin anazitisi to level mikrainei)
+    level= level/2; 
     //printf("new level= %d",level);
     double dist=0;
     double sum,a;
+    
+    //upologizoume apostasi tou simeiou apo to vp tis rizas tou eksetazomenou dentrou 
     for(int i=0;i<d;i++){
         a=pow(point[i]-(t->vp[i]),2);
         sum+=a;
     }
     dist=sqrt(sum);
+    // katevainoume sto dentro pigainontas aristera i deksia analoga me tin apostasi tou simeiou mas apo ti riza tou eksetazomenou dentroy
+    //kaloume anadromika ti sinartisi gia to dentro aristera tis rizas an i apostasi einai mikroteri kai gia to deksi an einai megaliteri
     if(dist<t->md)
         kn=knn_search(t->inner,point,d,k,level);
     else
