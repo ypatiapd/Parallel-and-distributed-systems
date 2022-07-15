@@ -63,8 +63,9 @@ int main(int argc, char *argv[]){
     printf("vpTree_time=%f\n",seq_time);
 
     /*SEARCH KNN*/
-
-    //printLeafs(t);
+    printf("Init Vptree leafs:\n");
+    printLeafs(t);
+    printf("\n");
 
     /*calculate knn of all points */
 
@@ -74,19 +75,20 @@ int main(int argc, char *argv[]){
     int power=atoi(argv[4]);
     gettimeofday (&startwtime, NULL);
 
-    for(int z=0;z<power;z++){ // ypologismos  2^0 ews 2^8 knn 
+    for(int z=1;z<=power;z++){
         int k=pow(2,z);
-        printf("k=%d\n",k);
+        //printf("k=%d\n",k);
         for(int i=0;i<n;i++){
             for(int j=0;j<d;j++){
                 point[j]=X[d*i+j];
+                //printf("point %lf ",point[j]);
             }
             knn=knn_search(t,point,d,k,n);
 
             //UNCOMENT to print nearest neighbours of each point
-            //printf("%d nearest neighbours \n",k);
-            //printLeafs(knn);
-            //printf("\n");
+            printf("%d nearest neighbours: \n",k);
+            printLeafs(knn);
+            printf("\n");
         }
     }
     gettimeofday (&endwtime, NULL);
@@ -97,28 +99,23 @@ int main(int argc, char *argv[]){
 
 struct T *knn_search(struct T *t, double *point,int d, int k,int level){
     struct T *kn = malloc(sizeof(struct T));
-    
-    // an to level isoutai me k tote eimaste sto dentro pou ta filla tou einai oi knn pou zitame kai to epistrefoume
     if (level==k){
         kn=t;
         return kn;
     }
-    
-    //se kathe anadromiki klisi to level upodiplasiazetai. 
-    //( epilegoume euthaireta na ksekinisoume me level=n opote oso proxwrame stin anazitisi to level mikrainei)
-    level= level/2; 
+    level= level/2;
     //printf("new level= %d",level);
     double dist=0;
-    double sum,a;
-    
-    //upologizoume apostasi tou simeiou apo to vp tis rizas tou eksetazomenou dentrou 
+    double sum=0;
+    double a=0;
     for(int i=0;i<d;i++){
         a=pow(point[i]-(t->vp[i]),2);
+        //printf("point =%f  vp =%f\n",point[i],t->vp[i]);
         sum+=a;
     }
     dist=sqrt(sum);
-    // katevainoume sto dentro pigainontas aristera i deksia analoga me tin apostasi tou simeiou mas apo ti riza tou eksetazomenou dentroy
-    //kaloume anadromika ti sinartisi gia to dentro aristera tis rizas an i apostasi einai mikroteri kai gia to deksi an einai megaliteri
+    //printf("dist=%f\n",dist);
+    //printf("mediandist=%f\n",t->md);
     if(dist<t->md)
         kn=knn_search(t->inner,point,d,k,level);
     else
