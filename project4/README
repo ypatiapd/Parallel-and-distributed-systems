@@ -10,7 +10,7 @@ Run openmp_tree:
 ./openmp_tree p d threadNo
 
 Run knn:
-./knn p d threadNo
+./knn p d threadNo k_power
 
 Compile and Run cuda_tree (google colab):
 !nvcc -O3 -o cuda_tree cuda_tree.cu -Xcompiler -fopenmp -g
@@ -20,12 +20,21 @@ Arguments:
 p: power of 2. n= 2^p , where n the number of points
 d: point dimension 
 threadNo: Number of threads for openMP 
+k_power: power of 2. k_max=2^k_power, where k_max the maximum knn neighbours calculated
 
-Example :
+Example 1 :
 ./openmp_tree 16 4 4 
 
 n=2^16
 d=4
 threadNo=4
+
+Example 2 :
+./knn 16 4 4 4
+
+n=2^16
+d=4
+threadNo=4
+knn calculated = 2^1-2^4
 
 **Comments for the main function of vpTree() at serial_tree.c file 
